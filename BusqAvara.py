@@ -38,36 +38,47 @@ def calcular_heuristica(coordenadas, objetivo):
     return heuristica
 
 
-
-def busqueda_avara(grafo, heuristica, nodo_inicio, nodo_meta):
-    frontera = []  # Cola de prioridad
-    heapq.heappush(frontera, (heuristica[nodo_inicio], nodo_inicio))
-    
+def busqueda_avara_con_costos(grafo, heuristica, nodo_inicio, nodo_meta):
+    nodos = [nodo_inicio]  # lista ordenada por heurística
     padres = {nodo_inicio: None}
     visitados = set()
+    costo_total = {nodo_inicio: 0}  # Costo acumulado al nodo inicio (0)
 
-    while frontera:
-        _, nodo_actual = heapq.heappop(frontera)
-        
-        print(f"Visitando: {nodo_actual}")
-        
-        if nodo_actual == nodo_meta:
-            # Reconstruir el camino
+    while nodos:
+        print("Lista de nodos:", nodos)
+        nodo = nodos.pop(0)  # Expandimos el primero (menor heurística)
+        print("Expandimos:", nodo)
+
+        if nodo == nodo_meta:
+            # Construir el camino
             camino = []
-            while nodo_actual is not None:
-                camino.insert(0, nodo_actual)
-                nodo_actual = padres[nodo_actual]
-            return camino
+            actual = nodo_meta
+            while actual is not None:
+                camino.insert(0, actual)
+                actual = padres[actual]
+            return camino, costo_total[nodo_meta]
 
-        visitados.add(nodo_actual)
+        visitados.add(nodo)
 
-        for vecino, peso in grafo.get(nodo_actual, []):
-            if vecino not in visitados and vecino not in [n for _, n in frontera]:
-                padres[vecino] = nodo_actual
-                heapq.heappush(frontera, (heuristica[vecino], vecino))
+        hijos = []
+        for hijo, peso in grafo.get(nodo, []):
+            if hijo not in visitados and hijo not in nodos:
+                padres[hijo] = nodo
+                costo_total[hijo] = costo_total[nodo] + peso  # Actualizamos el costo acumulado
+                hijos.append(hijo)
 
-    return None  # no se encontró camino
+        # Ordenar los hijos por heurística
+        hijos.sort(key=lambda x: heuristica[x])
+        print("Hijos ordenados por heurística:", hijos)
 
+        # Insertar cada hijo en su posición correspondiente
+        for hijo in hijos:
+            i = 0
+            while i < len(nodos) and heuristica[hijo] >= heuristica[nodos[i]]:
+                i += 1
+            nodos.insert(i, hijo)
+
+    return None, None  # No se encontró camino
 
 
 #Main
@@ -80,7 +91,7 @@ coordenadas = leer_coordenadas_desde_archivo("coordenadas.txt")
 heuristica = calcular_heuristica(coordenadas, 'F')
 print("La heuristica:\n", heuristica)
 # Ejecutar búsqueda voraz
-camino = busqueda_avara(grafo, heuristica, 'A', 'F')
+camino = busqueda_avara_con_costos(grafo, heuristica, 'A', 'F')
 
 if camino:
     print("Camino encontrado:", camino)
