@@ -1,5 +1,4 @@
 import math
-import heapq  # para la cola de prioridad
 
 def leer_grafo_con_pesos_desde_archivo(ruta):
     grafo = {}
