@@ -28,27 +28,30 @@ def leer_coordenadas_desde_archivo(ruta):
     return coordenadas
 
 def busqueda_costo_uniforme(grafo, nodo_inicio, nodo_meta):
-    nodos = [(nodo_inicio, 0)]  # tupla (nodo, costo acumulado)
+    nodos = [(nodo_inicio, 0)]  # (nodo, costo acumulado)
     padres = {nodo_inicio: None}
     costos = {nodo_inicio: 0}
     visitados = set()
 
     while nodos:
-        # Ordenar la lista solo por g(n), sin heurística
+        # Ordenar por costo acumulado
         nodos.sort(key=lambda x: x[1])
         print("Lista de nodos con costo acumulado:", [(n, c) for n, c in nodos])
         nodo, costo_actual = nodos.pop(0)
+
+        if nodo in visitados:
+            continue  # Ya lo exploramos completamente
+
         print("Expandimos:", nodo)
+        visitados.add(nodo)
 
         if nodo == nodo_meta:
             camino = []
-            actual = nodo_meta
+            actual = nodo
             while actual is not None:
                 camino.insert(0, actual)
                 actual = padres[actual]
-            return camino, costos[nodo_meta]
-
-        visitados.add(nodo)
+            return camino, costos[nodo]
 
         for hijo, peso in grafo.get(nodo, []):
             nuevo_costo = costo_actual + peso
@@ -61,11 +64,11 @@ def busqueda_costo_uniforme(grafo, nodo_inicio, nodo_meta):
     return None, None
 
 # Main
-grafo = leer_grafo_con_pesos_desde_archivo("grafo_pesado.txt")
+grafo = leer_grafo_con_pesos_desde_archivo("grafo_bifurcado.txt")
 print("Grafo:\n", grafo)
 
-coordenadas = leer_coordenadas_desde_archivo("coordenadas.txt")
-camino, costo = busqueda_costo_uniforme(grafo, 'A', 'F')
+coordenadas = leer_coordenadas_desde_archivo("coordenadas_bifurcado.txt")
+camino, costo = busqueda_costo_uniforme(grafo, 'A', 'J')
 
 if camino:
     print("Camino encontrado:", camino)
