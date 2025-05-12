@@ -1,31 +1,29 @@
 import math
 
-def leer_grafo_con_pesos_desde_archivo(ruta):
+def leer_grafo_y_coordenadas(ruta):
     grafo = {}
-    with open(ruta, 'r') as archivo:
-        for linea in archivo:
-            if linea.strip():
-                nodo, hijos = linea.strip().split(':', 1)
-                nodo = nodo.strip().replace('"', '')
-                hijos = hijos.strip().strip('[]').replace(' ', '')
-                lista_hijos = []
-                if hijos:
-                    for hijo_peso in hijos.split(','):
-                        hijo, peso = hijo_peso.split(':')
-                        lista_hijos.append((hijo.strip(), int(peso.strip())))
-                grafo[nodo] = lista_hijos
-    return grafo
-
-def leer_coordenadas_desde_archivo(ruta):
     coordenadas = {}
+
     with open(ruta, 'r') as archivo:
         for linea in archivo:
-            if '=' in linea:
-                nodo, coord = linea.strip().split('=')
-                nodo = nodo.strip()
-                x, y = coord.strip('()').split(',')
-                coordenadas[nodo] = (float(x), float(y))
-    return coordenadas
+            if not linea.strip():
+                continue
+
+            izq, der = linea.strip().split(':', 1)
+            nombre, coord_str = izq.split('=')
+            nodo = nombre.strip()
+            x, y = coord_str.strip('() ').split(',')
+            coordenadas[nodo] = (float(x), float(y))
+
+            der = der.strip().strip('[]').replace(' ', '')
+            lista_hijos = []
+            if der:
+                for hijo_peso in der.split(','):
+                    hijo, peso = hijo_peso.split(':')
+                    lista_hijos.append((hijo.strip(), int(peso.strip())))
+            grafo[nodo] = lista_hijos
+
+    return grafo, coordenadas
 
 def busqueda_costo_uniforme(grafo, nodo_inicio, nodo_meta):
     nodos = [(nodo_inicio, 0)]  # (nodo, costo acumulado)
@@ -64,14 +62,31 @@ def busqueda_costo_uniforme(grafo, nodo_inicio, nodo_meta):
     return None, None
 
 # Main
-grafo = leer_grafo_con_pesos_desde_archivo("grafo_bifurcado.txt")
-print("Grafo:\n", grafo)
 
-coordenadas = leer_coordenadas_desde_archivo("coordenadas_bifurcado.txt")
-camino, costo = busqueda_costo_uniforme(grafo, 'A', 'J')
+from dibujar_grafo import dibujar_grafo, dibujar_arbol
+
+def reconstruir_padres(camino):
+    if not camino:
+        return {}
+    return {camino[i]: camino[i-1] for i in range(1, len(camino))} | {camino[0]: None}
+
+#grafo = leer_grafo_con_pesos_desde_archivo("grafo_bifurcado.txt")
+#print("Grafo:\n", grafo)
+
+#coordenadas = leer_coordenadas_desde_archivo("coordenadas_bifurcado.txt")
+#camino, costo = busqueda_costo_uniforme(grafo, 'A', 'J')
+
+grafo, coordenadas = leer_grafo_y_coordenadas('graph.txt')
+
+camino, costo = busqueda_costo_uniforme(grafo, 'A', 'E')
 
 if camino:
-    print("Camino encontrado:", camino)
-    print(f"Costo total del camino: {costo}")
+    padres = reconstruir_padres(camino)
+    dibujar_grafo(grafo, camino, coordenadas)
+    dibujar_arbol(padres, nodo_raiz='A', grafo_original=grafo, coordenadas=coordenadas)
 else:
     print("No se encontró un camino.")
+
+print("Grafo:", grafo)
+
+print('A' in grafo, 'F' in grafo)

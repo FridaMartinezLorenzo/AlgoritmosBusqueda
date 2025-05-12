@@ -27,7 +27,7 @@ def busquedaProfundidad(grafo, nodo_inicio, nodo_meta):
             while actual is not None:
                 camino.insert(0, actual)
                 actual = padres[actual]
-            return camino
+            return camino, padres  # Retorna el camino y los padres para el grafo
         
         #Expandir
         for hijo in reversed(grafo.get(nodo, [])):
@@ -40,15 +40,25 @@ def busquedaProfundidad(grafo, nodo_inicio, nodo_meta):
                     nodos.insert(0,hijo)
        
                 
-    return None  # No se encontró el nodo meta
+    return None,padres  # No se encontró el nodo meta
 
 #Main
-ruta_archivo = 'grafo.txt' 
+from dibujar_grafo import leer_grafo_desde_archivo, dibujar_grafo, dibujar_arbol
+
+ruta_archivo = 'grafo_rumania.txt'
 grafo = leer_grafo_desde_archivo(ruta_archivo)
-print("grafo", grafo);
-print("grafo A", grafo.get("A",[]))
-camino = busquedaProfundidad(grafo, 'A', 'F')
+
+# Ejecutamos la búsqueda
+camino, padres = busquedaProfundidad(grafo, 'Arad', 'Bucharest')
+
+# Dibujar camino encontrado
 if camino:
     print("Camino encontrado:", camino)
+    dibujar_grafo(grafo, camino)
 else:
     print("No se encontró un camino.")
+    dibujar_grafo(grafo)
+
+# Mostrar árbol de expansión
+dibujar_arbol(padres, nodo_raiz='Arad')
+
